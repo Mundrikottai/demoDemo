@@ -1,0 +1,53 @@
+import machine
+import time
+import urequests # Import urequests library for HTTP requests
+# Wi-Fi connection settings
+SSID = "YourWiFiSSID"
+PASSWORD = "YourWiFiPassword"
+# ThingSpeak configuration
+THING_SPEAK_ADDRESS = "api.thingspeak.com"
+API_KEY = "YourThingSpeakAPIKey"
+# Pin assignments
+GAS_SENSOR_PIN = 0 # Analog pin for gas sensor
+BUZZER_PIN = 12 # Digital pin for buzzer
+# Interval for sending data to ThingSpeak (milliseconds)
+INTERVAL = 15000
+# Function to send data to ThingSpeak
+def send_to_thingspeak(field1):
+ url = "http://{}/update?api_key={}&field1={}".format(THING_SPEAK_ADDRESS, API_KEY, field1)
+ response = urequests.get(url)
+ if response.status_code == 200:
+ print("Data sent to ThingSpeak successfully")
+ else:
+ print("Failed to send data to ThingSpeak, status code:", response.status_code)
+ response.close()
+# Wi-Fi connection
+wifi = network.WLAN(network.STA_IF)
+wifi.active(True)
+wifi.connect(SSID, PASSWORD)
+while not wifi.isconnected():
+6 | P a g e
+ pass
+print("Connected to Wi-Fi network with IP Address:", wifi.ifconfig()[0])
+# Pin initialization
+gas_sensor = machine.ADC(GAS_SENSOR_PIN)
+buzzer = machine.Pin(BUZZER_PIN, machine.Pin.OUT)
+buzzer.off()
+# Main loop
+previous_millis = 0
+while True:
+ gas_value = gas_sensor.read()
+ print("Gas:", gas_value)
+ if 260 < gas_value < 265:
+ print("You are burning Paper")
+ elif gas_value > 266:
+ print("You are burning cloth")
+ if gas_value > 200:
+ buzzer.on()
+ else:
+ buzzer.off()
+ current_millis = time.ticks_ms()
+ if current_millis - previous_millis >= INTERVAL:
+ previous_millis = current_millis
+ send_to_thingspeak(gas_value)
+ time.sleep_ms(1000)
